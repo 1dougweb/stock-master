@@ -65,7 +65,7 @@
             <div>
                 <x-label for="stock" value="{{ __('Peso em Estoque') }}" />
                 <div class="flex items-center">
-                    <x-input id="stock" class="block mt-1 w-full" type="number" wire:model="stock" step="0.001" min="0" required />
+                    <x-input id="stock" class="block mt-1 w-full" type="number" wire:model="stock" step="1" min="0" required />
                     <span class="ml-2 text-gray-600">KG</span>
                 </div>
                 @error('stock')
@@ -76,7 +76,7 @@
             <div>
                 <x-label for="min_stock" value="{{ __('Peso Mínimo') }}" />
                 <div class="flex items-center">
-                    <x-input id="min_stock" class="block mt-1 w-full" type="number" wire:model="min_stock" step="0.001" min="0" required />
+                    <x-input id="min_stock" class="block mt-1 w-full" type="number" wire:model="min_stock" step="1" min="0" required />
                     <span class="ml-2 text-gray-600">KG</span>
                 </div>
                 @error('min_stock')
@@ -89,7 +89,7 @@
             <div>
                 <x-label for="stock" value="{{ __('Metragem em Estoque') }}" />
                 <div class="flex items-center">
-                    <x-input id="stock" class="block mt-1 w-full" type="number" wire:model="stock" step="0.01" min="0" required />
+                    <x-input id="stock" class="block mt-1 w-full" type="number" wire:model="stock" step="1" min="0" required />
                     <span class="ml-2 text-gray-600">M</span>
                 </div>
                 @error('stock')
@@ -100,7 +100,7 @@
             <div>
                 <x-label for="min_stock" value="{{ __('Metragem Mínima') }}" />
                 <div class="flex items-center">
-                    <x-input id="min_stock" class="block mt-1 w-full" type="number" wire:model="min_stock" step="0.01" min="0" required />
+                    <x-input id="min_stock" class="block mt-1 w-full" type="number" wire:model="min_stock" step="1" min="0" required />
                     <span class="ml-2 text-gray-600">M</span>
                 </div>
                 @error('min_stock')
