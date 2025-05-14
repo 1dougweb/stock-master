@@ -1,5 +1,5 @@
 <div>
-    <div class="mb-4 bg-white rounded-lg shadow-md p-4">
+    <div class="mb-4 bg-white rounded-lg shadow-lx p-8">
         <div class="flex flex-wrap gap-2">
             <!-- Busca -->
             <div class="flex-1 min-w-[200px] flex gap-2">

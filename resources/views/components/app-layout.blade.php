@@ -85,6 +85,11 @@
                                 </x-slot>
 
                                 <x-slot name="content">
+                                    <!-- Perfil Link -->
+                                    <x-dropdown-link :href="route('profile.edit')">
+                                        {{ __('Perfil') }}
+                                    </x-dropdown-link>
+                                    
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <x-dropdown-link :href="route('logout')"
@@ -155,6 +160,11 @@
                         </div>
 
                         <div class="mt-3 space-y-1">
+                            <!-- Perfil Link -->
+                            <x-responsive-nav-link :href="route('profile.edit')">
+                                {{ __('Perfil') }}
+                            </x-responsive-nav-link>
+                            
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <x-responsive-nav-link :href="route('logout')"

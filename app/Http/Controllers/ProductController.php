@@ -52,9 +52,5 @@ class ProductController extends Controller
         return view('products.stock-history', compact('product', 'movements'));
     }
 
-    public function generateSKU(Request $request)
-    {
-        // Este método não é usado já que estamos usando Livewire
-        return response()->json(['sku' => '']);
-    }
+    
 }

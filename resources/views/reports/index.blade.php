@@ -7,11 +7,10 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-6 sm:px-20 bg-white">
+            <div class="sm:rounded-lg">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Relatório de Vendas -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="bg-white overflow-hidden shadow-xl rounded-lg">
                             <div class="p-5">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
@@ -35,7 +34,7 @@
                         </div>
 
                         <!-- Relatório de Estoque -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="bg-white shadow-xl rounded-lg">
                             <div class="p-5">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
@@ -59,7 +58,7 @@
                         </div>
 
                         <!-- Relatório de Movimentações -->
-                        <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="bg-white shadow-xl rounded-lg">
                             <div class="p-5">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
@@ -82,7 +81,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
             </div>
         </div>
     </div>
