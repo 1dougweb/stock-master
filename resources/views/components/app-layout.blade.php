@@ -184,5 +184,11 @@
         </div>
 
         @livewireScripts
+        
+        <!-- Import IMask before using it -->
+        <script src="https://unpkg.com/imask"></script>
+        
+        <!-- Scripts Stack -->
+        @stack('scripts')
     </body>
 </html>

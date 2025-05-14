@@ -29,13 +29,24 @@ class Dashboard extends Component
 
     public function updatedPeriod()
     {
+        // Log da mudança de período para depuração
+        \Illuminate\Support\Facades\Log::info('Período atualizado para: ' . $this->period);
+        
         $this->loadData();
-        $this->emit('updateCharts', [
+        
+        // Preparar os dados para os gráficos, incluindo os rótulos 
+        $updateData = [
             'orders' => $this->chartData['orders'],
             'stockIn' => $this->chartData['stockIn'],
             'stockOut' => $this->chartData['stockOut'],
-            'topProducts' => $this->topProducts
-        ]);
+            'topProducts' => $this->topProducts->pluck('stock_movements_count', 'name')->toArray(),
+            'period' => $this->period
+        ];
+        
+        // Despachar o evento com os dados dos gráficos
+        // Dispatching to both event names for compatibility
+        $this->dispatch('updateCharts', $updateData);
+        $this->dispatch('chartDataUpdated', $this->chartData);
     }
 
     protected function loadData()

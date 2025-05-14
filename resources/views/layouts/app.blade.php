@@ -11,12 +11,9 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Scripts -->
+        <!-- Scripts - Não adicione outros scripts que carregam Alpine.js -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
-        <!-- ApexCharts -->
-        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
         <!-- Styles -->
         @livewireStyles
     </head>
@@ -30,33 +27,33 @@
                     <h1 class="text-2xl font-bold">{{ config('app.name') }}</h1>
                 </div>
                 <div class="mt-6">
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('dashboard') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-home mr-2"></i> Dashboard
-                    </x-nav-link>
+                    </a>
                     
-                    <x-nav-link href="{{ route('products.index') }}" :active="request()->routeIs('products.*')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/products') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('products.*') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-box mr-2"></i> Produtos
-                    </x-nav-link>
+                    </a>
                     
-                    <x-nav-link href="{{ route('categories.index') }}" :active="request()->routeIs('categories.*')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/categories') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('categories.*') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-tags mr-2"></i> Categorias
-                    </x-nav-link>
+                    </a>
                     
-                    <x-nav-link href="{{ route('material-requests.index') }}" :active="request()->routeIs('material-requests.*')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/material-requests') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('material-requests.*') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-clipboard-list mr-2"></i> Pedidos de Materiais
-                    </x-nav-link>
+                    </a>
                     
-                    <x-nav-link href="{{ route('suppliers.index') }}" :active="request()->routeIs('suppliers.*')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/suppliers') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('suppliers.*') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-truck mr-2"></i> Fornecedores
-                    </x-nav-link>
+                    </a>
                     
-                    <x-nav-link href="{{ route('employees.index') }}" :active="request()->routeIs('employees.*')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/employees') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('employees.*') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-users mr-2"></i> Funcionários
-                    </x-nav-link>
+                    </a>
                     
-                    <x-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.*')" class="block px-6 py-3 hover:bg-indigo-700">
+                    <a href="{{ url('/reports') }}" target="_self" class="block px-6 py-3 hover:bg-indigo-700 {{ request()->routeIs('reports.*') ? 'bg-indigo-700' : '' }}">
                         <i class="fas fa-chart-bar mr-2"></i> Relatórios
-                    </x-nav-link>
+                    </a>
                 </div>
             </nav>
 
@@ -123,7 +120,7 @@
 
         @livewireScripts
         
-        <!-- Scripts personalizados -->
+        <!-- Scripts personalizados - Cuidado para não incluir Alpine.js novamente -->
         @stack('scripts')
     </body>
 </html>

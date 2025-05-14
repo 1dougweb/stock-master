@@ -1,11 +1,11 @@
-<div>
+<div id="supplier-form">
     <form wire:submit.prevent="save">
         <div class="space-y-6">
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
                 <!-- CNPJ -->
                 <div class="col-span-1">
                     <x-label for="cnpj" value="{{ __('CNPJ') }}" />
-                    <x-input id="cnpj" type="text" class="mt-1 block w-full" wire:model.defer="cnpj" />
+                    <x-input id="cnpj" type="text" class="mt-1 block w-full mask-cnpj" wire:model.defer="cnpj" />
                     <x-input-error for="cnpj" class="mt-2" />
                 </div>
 
@@ -47,28 +47,28 @@
                 <!-- Estado -->
                 <div class="col-span-1">
                     <x-label for="state" value="{{ __('Estado') }}" />
-                    <x-input id="state" type="text" class="mt-1 block w-full" wire:model.defer="state" maxlength="2" />
+                    <x-input id="state" type="text" class="mt-1 block w-full mask-state" wire:model.defer="state" maxlength="2" />
                     <x-input-error for="state" class="mt-2" />
                 </div>
 
                 <!-- CEP -->
                 <div class="col-span-1">
                     <x-label for="zip_code" value="{{ __('CEP') }}" />
-                    <x-input id="zip_code" type="text" class="mt-1 block w-full" wire:model.defer="zip_code" />
+                    <x-input id="zip_code" type="text" class="mt-1 block w-full mask-cep" wire:model.defer="zip_code" />
                     <x-input-error for="zip_code" class="mt-2" />
                 </div>
 
                 <!-- Telefone -->
                 <div class="col-span-1">
                     <x-label for="phone" value="{{ __('Telefone') }}" />
-                    <x-input id="phone" type="text" class="mt-1 block w-full" wire:model.defer="phone" />
+                    <x-input id="phone" type="text" class="mt-1 block w-full mask-phone" wire:model.defer="phone" />
                     <x-input-error for="phone" class="mt-2" />
                 </div>
 
                 <!-- WhatsApp -->
                 <div class="col-span-1">
                     <x-label for="whatsapp" value="{{ __('WhatsApp') }}" />
-                    <x-input id="whatsapp" type="text" class="mt-1 block w-full" wire:model.defer="whatsapp" />
+                    <x-input id="whatsapp" type="text" class="mt-1 block w-full mask-whatsapp" wire:model.defer="whatsapp" />
                     <x-input-error for="whatsapp" class="mt-2" />
                 </div>
 
@@ -107,4 +107,60 @@
             </div>
         </div>
     @endif
+    
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            applyInputMasks();
+            
+            // Reapply masks after Livewire updates
+            document.addEventListener('livewire:load', function() {
+                Livewire.hook('message.processed', (message, component) => {
+                    applyInputMasks();
+                });
+            });
+            
+            function applyInputMasks() {
+                // CNPJ Mask
+                document.querySelectorAll('.mask-cnpj').forEach(element => {
+                    IMask(element, {
+                        mask: '00.000.000/0000-00'
+                    });
+                });
+                
+                // CEP Mask
+                document.querySelectorAll('.mask-cep').forEach(element => {
+                    IMask(element, {
+                        mask: '00000-000'
+                    });
+                });
+                
+                // Phone Mask
+                document.querySelectorAll('.mask-phone').forEach(element => {
+                    IMask(element, {
+                        mask: [
+                            { mask: '(00) 0000-0000' },
+                            { mask: '(00) 00000-0000' }
+                        ]
+                    });
+                });
+                
+                // WhatsApp Mask
+                document.querySelectorAll('.mask-whatsapp').forEach(element => {
+                    IMask(element, {
+                        mask: '(00) 00000-0000'
+                    });
+                });
+                
+                // Estado Mask
+                document.querySelectorAll('.mask-state').forEach(element => {
+                    IMask(element, {
+                        mask: /^[A-Z]{0,2}$/,
+                        prepare: (str) => str.toUpperCase()
+                    });
+                });
+            }
+        });
+    </script>
+    @endpush
 </div>
