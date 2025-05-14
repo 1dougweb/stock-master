@@ -5,20 +5,34 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Sistema de Estoque') }}</title>
+        <title>{{ config('app.name', 'Laravel') }}</title>
+
+        <!-- Notificações de sessão flash -->
+        @if(session('success'))
+            <meta name="notification-success" content="{{ session('success') }}">
+        @endif
+        @if(session('error'))
+            <meta name="notification-error" content="{{ session('error') }}">
+        @endif
+        @if(session('info'))
+            <meta name="notification-info" content="{{ session('info') }}">
+        @endif
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Scripts - Não adicione outros scripts que carregam Alpine.js -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/notifications.js'])
+
         <!-- Styles -->
         @livewireStyles
     </head>
     <body class="font-sans antialiased">
         <x-banner />
+
+        <!-- Notification container for dynamic notifications -->
+        <div id="notifications-container" class="fixed bottom-0 right-0 m-6 z-50 space-y-3"></div>
 
         <div class="min-h-screen bg-gray-100">
             <!-- Left Sidebar Navigation -->
@@ -120,7 +134,10 @@
 
         @livewireScripts
         
-        <!-- Scripts personalizados - Cuidado para não incluir Alpine.js novamente -->
+        <!-- Import IMask before using it -->
+        <script src="https://unpkg.com/imask"></script>
+        
+        <!-- Scripts Stack -->
         @stack('scripts')
     </body>
 </html>

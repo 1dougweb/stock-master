@@ -4,17 +4,12 @@
             {{ __('Nova Requisição de Material') }}
         </h2>
     </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-6 lg:p-8 bg-white border-b border-gray-200">
                     <form wire:submit.prevent="save">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Número -->
                             <div class="col-span-2">
                                 <x-label for="number" value="{{ __('Número OS') }}" />
-                                <div class="mt-1 flex rounded-md shadow-sm max-w-lg">
+                                <div class="mt-1 flex rounded-md max-w-lg">
                                     <span class="inline-flex items-center px-4 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-base font-medium">
                                         OS
                                     </span>
@@ -33,6 +28,27 @@
                                     @endforeach
                                 </x-select>
                                 <x-input-error for="employee_id" class="mt-2" />
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-span-2">
+                                <x-label value="{{ __('Ações de Estoque') }}" />
+                                <div class="mt-2 space-y-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" class="form-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            wire:model="take_from_stock" />
+                                        <span class="ml-2">Retirar itens do estoque</span>
+                                    </label>
+                                    
+                                    <label class="inline-flex items-center ml-6">
+                                        <input type="checkbox" class="form-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            wire:model="return_to_stock" />
+                                        <span class="ml-2">Devolver itens ao estoque</span>
+                                    </label>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">Selecione uma ação caso deseje atualizar o estoque agora.</p>
+                                <x-input-error for="take_from_stock" class="mt-2" />
+                                <x-input-error for="return_to_stock" class="mt-2" />
                             </div>
 
                             <!-- Observações -->
@@ -120,8 +136,4 @@
                             </x-button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>

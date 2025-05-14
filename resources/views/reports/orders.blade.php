@@ -27,16 +27,6 @@
                                 <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             </div>
-                            <div class="flex-1">
-                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                                <select name="status" id="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                    <option value="">Todos</option>
-                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendente</option>
-                                    <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>Em Andamento</option>
-                                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Concluído</option>
-                                    <option value="canceled" {{ request('status') == 'canceled' ? 'selected' : '' }}>Cancelado</option>
-                                </select>
-                            </div>
                             <div class="flex-none self-end">
                                 <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">
                                     Filtrar
@@ -60,9 +50,6 @@
                                                     Cliente
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Status
-                                                </th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Produtos
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -82,30 +69,6 @@
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                         {{ $order->customer_name }}
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        @switch($order->status)
-                                                            @case('pending')
-                                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                                    Pendente
-                                                                </span>
-                                                                @break
-                                                            @case('in_progress')
-                                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                    Em Andamento
-                                                                </span>
-                                                                @break
-                                                            @case('completed')
-                                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                                    Concluído
-                                                                </span>
-                                                                @break
-                                                            @case('canceled')
-                                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                                    Cancelado
-                                                                </span>
-                                                                @break
-                                                        @endswitch
-                                                    </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                         <ul>
                                                             @foreach($order->items as $item)
@@ -122,7 +85,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                                    <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                                         Nenhuma requisição de material encontrada.
                                                     </td>
                                                 </tr>

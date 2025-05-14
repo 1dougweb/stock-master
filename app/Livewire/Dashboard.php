@@ -11,225 +11,206 @@ use Livewire\Component;
 
 class Dashboard extends Component
 {
-    public $monthlyStats;
-    public $topProducts;
-    public $stockMovements;
-    public $recentOrders;
     public $period = 'month';
     public $chartData = [];
+    public $lowStockProducts = [];
+    public $recentOrders = [];
+    public $stockMovements = [];
+    public $statistics = [];
+    public $monthlyStats = [];
+    public $topProducts = [];
+
+    protected $listeners = ['refreshDashboard' => '$refresh'];
 
     public function mount()
     {
-        $this->loadMonthlyStats();
-        $this->loadTopProducts();
-        $this->updateChartData();
+        $this->loadData();
     }
 
     public function updatedPeriod()
     {
-        $this->updateChartData();
+        // Log da mudança de período para depuração
+        \Illuminate\Support\Facades\Log::info('Período atualizado para: ' . $this->period);
+        
+        $this->loadData();
+        
+        // Preparar os dados para os gráficos, incluindo os rótulos 
+        $updateData = [
+            'orders' => $this->chartData['orders'],
+            'stockIn' => $this->chartData['stockIn'],
+            'stockOut' => $this->chartData['stockOut'],
+            'topProducts' => $this->topProducts->pluck('stock_movements_count', 'name')->toArray(),
+            'period' => $this->period
+        ];
+        
+        // Despachar o evento com os dados dos gráficos
+        // Dispatching to both event names for compatibility
+        $this->dispatch('updateCharts', $updateData);
         $this->dispatch('chartDataUpdated', $this->chartData);
     }
 
-    private function loadMonthlyStats()
+    protected function loadData()
     {
+        $this->loadStatistics();
+        $this->loadChartData();
+        $this->loadLowStockProducts();
+        $this->loadRecentOrders();
+        $this->loadStockMovements();
+        $this->loadMonthlyStats();
+        $this->loadTopProducts();
+    }
+
+    protected function loadMonthlyStats()
+    {
+        $startDate = Carbon::now()->startOfMonth();
+        
+        $stats = MaterialRequest::select(
+            DB::raw('COUNT(*) as total_orders'),
+            DB::raw('SUM(CASE WHEN has_stock_out = 1 THEN 1 ELSE 0 END) as processed_orders'),
+            DB::raw('SUM(total_amount) as total_amount'),
+            DB::raw('AVG(total_amount) as average_amount')
+        )
+            ->whereBetween('created_at', [$startDate, now()])
+            ->first();
+
+        $stockMovements = StockMovement::whereBetween('created_at', [$startDate, now()])->count();
+        $lowStockAlerts = Product::whereRaw('stock <= min_stock')->count();
+
         $this->monthlyStats = [
-            'total_orders' => MaterialRequest::whereMonth('created_at', now()->month)->count(),
-            'completed_orders' => MaterialRequest::whereMonth('created_at', now()->month)
-                ->where('status', 'concluida')
-                ->count(),
-            'total_movements' => StockMovement::whereMonth('created_at', now()->month)->count(),
-            'low_stock_alerts' => Product::whereRaw('stock <= min_stock')->count(),
+            'total_orders' => $stats->total_orders ?? 0,
+            'completed_orders' => $stats->processed_orders ?? 0,
+            'total_amount' => $stats->total_amount ?? 0,
+            'average_amount' => $stats->average_amount ?? 0,
+            'total_movements' => $stockMovements,
+            'low_stock_alerts' => $lowStockAlerts
         ];
     }
 
-    private function loadTopProducts()
+    protected function loadStatistics()
     {
-        $this->topProducts = Product::withCount('stockMovements')
-            ->orderByDesc('stock_movements_count')
-            ->limit(5)
+        $startDate = $this->getStartDate();
+
+        $this->statistics = [
+            'total_orders' => MaterialRequest::whereBetween('created_at', [$startDate, now()])->count(),
+            'pending_orders' => MaterialRequest::where('has_stock_out', false)
+                ->whereBetween('created_at', [$startDate, now()])
+                ->count(),
+            'processed_orders' => MaterialRequest::where('has_stock_out', true)
+                ->whereBetween('created_at', [$startDate, now()])
+                ->count(),
+            'total_amount' => MaterialRequest::whereBetween('created_at', [$startDate, now()])
+                ->sum('total_amount'),
+            'total_movements' => StockMovement::whereBetween('created_at', [$startDate, now()])->count(),
+            'low_stock_products' => Product::whereRaw('stock <= min_stock')->count(),
+        ];
+    }
+
+    protected function loadChartData()
+    {
+        $startDate = $this->getStartDate();
+        
+        // Dados para o gráfico de requisições
+        $orders = MaterialRequest::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as total')
+        )
+            ->whereBetween('created_at', [$startDate, now()])
+            ->groupBy('date')
+            ->get()
+            ->pluck('total', 'date')
+            ->toArray();
+
+        // Dados para o gráfico de movimentações
+        $stockIn = StockMovement::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as total')
+        )
+            ->where('type', 'entrada')
+            ->whereBetween('created_at', [$startDate, now()])
+            ->groupBy('date')
+            ->get()
+            ->pluck('total', 'date')
+            ->toArray();
+
+        $stockOut = StockMovement::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as total')
+        )
+            ->where('type', 'saida')
+            ->whereBetween('created_at', [$startDate, now()])
+            ->groupBy('date')
+            ->get()
+            ->pluck('total', 'date')
+            ->toArray();
+
+        // Preencher datas faltantes com zeros
+        $dates = collect(array_unique(array_merge(
+            array_keys($orders),
+            array_keys($stockIn),
+            array_keys($stockOut)
+        )))->sort();
+
+        $filledOrders = [];
+        $filledStockIn = [];
+        $filledStockOut = [];
+
+        foreach ($dates as $date) {
+            $filledOrders[$date] = $orders[$date] ?? 0;
+            $filledStockIn[$date] = $stockIn[$date] ?? 0;
+            $filledStockOut[$date] = $stockOut[$date] ?? 0;
+        }
+
+        $this->chartData = [
+            'orders' => $filledOrders,
+            'stockIn' => $filledStockIn,
+            'stockOut' => $filledStockOut
+        ];
+    }
+
+    protected function loadLowStockProducts()
+    {
+        $this->lowStockProducts = Product::whereRaw('stock <= min_stock')
+            ->orderBy('stock', 'asc')
+            ->take(5)
             ->get();
     }
 
-    public function updateChartData()
+    protected function loadRecentOrders()
     {
-        try {
-            $endDate = Carbon::now();
-            $startDate = null;
-            $groupFormat = '';
-            
-            switch ($this->period) {
-                case 'week':
-                    $startDate = Carbon::now()->subDays(7);
-                    $groupFormat = '%Y-%m-%d';
-                    break;
-                case 'month':
-                    $startDate = Carbon::now()->subMonth();
-                    $groupFormat = '%Y-%m-%d';
-                    break;
-                case 'year':
-                    $startDate = Carbon::now()->subYear();
-                    $groupFormat = '%Y-%m';
-                    break;
-            }
-
-            // Gráfico de Requisições
-            $ordersData = MaterialRequest::whereBetween('created_at', [$startDate, $endDate])
-                ->select(DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as date"), DB::raw('count(*) as count'))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->pluck('count', 'date')
-                ->toArray();
-
-            // Gráfico de Movimentações (Entradas e Saídas)
-            $stockInData = StockMovement::whereBetween('created_at', [$startDate, $endDate])
-                ->where('type', 'entrada')
-                ->select(DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as date"), DB::raw('SUM(quantity) as total'))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->pluck('total', 'date')
-                ->toArray();
-
-            $stockOutData = StockMovement::whereBetween('created_at', [$startDate, $endDate])
-                ->where('type', 'saida')
-                ->select(DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as date"), DB::raw('SUM(quantity) as total'))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->pluck('total', 'date')
-                ->toArray();
-                
-            // Preparar dados para gráfico de produtos mais movimentados (donut chart)
-            $topProductsData = $this->topProducts->pluck('stock_movements_count', 'name')->toArray();
-
-            // Se não houver dados, adiciona dados simulados para demonstração
-            if (empty($ordersData)) {
-                // Gera dados simulados para o período selecionado
-                $ordersData = $this->generateSimulatedData($startDate, $endDate, $this->period);
-            }
-            
-            if (empty($stockInData) && empty($stockOutData)) {
-                $simulatedDates = array_keys($this->generateSimulatedData($startDate, $endDate, $this->period));
-                foreach ($simulatedDates as $date) {
-                    $stockInData[$date] = rand(5, 50);
-                    $stockOutData[$date] = rand(5, 40);
-                }
-            }
-            
-            if (empty($topProductsData)) {
-                $topProductsData = [
-                    'Produto A' => 15,
-                    'Produto B' => 10,
-                    'Produto C' => 8,
-                    'Produto D' => 5,
-                    'Produto E' => 3
-                ];
-            }
-
-            $this->chartData = [
-                'orders' => $ordersData,
-                'stockIn' => $stockInData,
-                'stockOut' => $stockOutData,
-                'topProducts' => $topProductsData
-            ];
-        } catch (\Exception $e) {
-            // Em caso de erro, use dados simulados para evitar quebrar a interface
-            $this->chartData = $this->getSimulatedChartData();
-            
-            // Log de erro para depuração
-            \Illuminate\Support\Facades\Log::error('Erro ao gerar dados dos gráficos: ' . $e->getMessage());
-        }
+        $this->recentOrders = MaterialRequest::with(['items.product'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
     }
-    
-    /**
-     * Obtém dados simulados para todos os gráficos em caso de erro
-     */
-    private function getSimulatedChartData()
+
+    protected function loadStockMovements()
     {
-        $startDate = now()->subMonth();
-        $endDate = now();
-        
-        $simulatedOrdersData = $this->generateSimulatedData($startDate, $endDate, 'month');
-        
-        $simulatedDates = array_keys($simulatedOrdersData);
-        $stockInData = [];
-        $stockOutData = [];
-        
-        foreach ($simulatedDates as $date) {
-            $stockInData[$date] = rand(5, 50);
-            $stockOutData[$date] = rand(5, 40);
-        }
-        
-        $topProductsData = [
-            'Produto A' => 15,
-            'Produto B' => 10,
-            'Produto C' => 8,
-            'Produto D' => 5,
-            'Produto E' => 3
-        ];
-        
-        return [
-            'orders' => $simulatedOrdersData,
-            'stockIn' => $stockInData,
-            'stockOut' => $stockOutData,
-            'topProducts' => $topProductsData
-        ];
+        $this->stockMovements = StockMovement::with('product')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
     }
-    
-    /**
-     * Gera dados simulados para demonstração de gráficos
-     */
-    private function generateSimulatedData($startDate, $endDate, $period)
+
+    protected function loadTopProducts()
     {
-        $data = [];
-        $current = clone $startDate;
-        
-        while ($current <= $endDate) {
-            $key = $period === 'year' 
-                ? $current->format('Y-m')
-                : $current->format('Y-m-d');
-                
-            $data[$key] = rand(1, 20);
-            
-            if ($period === 'year') {
-                $current->addMonth();
-            } else {
-                $current->addDay();
-            }
-        }
-        
-        return $data;
+        $this->topProducts = Product::withCount('stockMovements')
+            ->orderBy('stock_movements_count', 'desc')
+            ->take(5)
+            ->get();
+    }
+
+    protected function getStartDate()
+    {
+        return match($this->period) {
+            'week' => now()->subWeek(),
+            'month' => now()->subMonth(),
+            'year' => now()->subYear(),
+            default => now()->subMonth(),
+        };
     }
 
     public function render()
     {
-        $lowStockProducts = Product::whereRaw('stock <= min_stock')
-            ->orderBy('stock')
-            ->limit(5)
-            ->get();
-
-        $this->recentOrders = MaterialRequest::latest()
-            ->limit(5)
-            ->get();
-
-        $this->stockMovements = StockMovement::with('product')
-            ->latest()
-            ->limit(5)
-            ->get();
-
-        $totalProducts = Product::count();
-        $totalOrders = MaterialRequest::count();
-        $pendingOrders = MaterialRequest::where('status', 'pendente')->count();
-
-        return view('livewire.dashboard', [
-            'lowStockProducts' => $lowStockProducts,
-            'recentOrders' => $this->recentOrders,
-            'stockMovements' => $this->stockMovements,
-            'totalProducts' => $totalProducts,
-            'totalOrders' => $totalOrders,
-            'pendingOrders' => $pendingOrders,
-            'monthlyStats' => $this->monthlyStats,
-            'topProducts' => $this->topProducts,
-            'chartData' => $this->chartData,
-        ]);
+        return view('livewire.dashboard');
     }
 }

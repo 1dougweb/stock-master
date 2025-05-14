@@ -66,7 +66,7 @@ class Dashboard extends Component
         
         $stats = MaterialRequest::select(
             DB::raw('COUNT(*) as total_orders'),
-            DB::raw('SUM(CASE WHEN status = "concluida" THEN 1 ELSE 0 END) as completed_orders'),
+            DB::raw('SUM(CASE WHEN has_stock_out = 1 THEN 1 ELSE 0 END) as processed_orders'),
             DB::raw('SUM(total_amount) as total_amount'),
             DB::raw('AVG(total_amount) as average_amount')
         )
@@ -78,7 +78,7 @@ class Dashboard extends Component
 
         $this->monthlyStats = [
             'total_orders' => $stats->total_orders ?? 0,
-            'completed_orders' => $stats->completed_orders ?? 0,
+            'completed_orders' => $stats->processed_orders ?? 0,
             'total_amount' => $stats->total_amount ?? 0,
             'average_amount' => $stats->average_amount ?? 0,
             'total_movements' => $stockMovements,
@@ -92,10 +92,10 @@ class Dashboard extends Component
 
         $this->statistics = [
             'total_orders' => MaterialRequest::whereBetween('created_at', [$startDate, now()])->count(),
-            'pending_orders' => MaterialRequest::where('status', 'pendente')
+            'pending_orders' => MaterialRequest::where('has_stock_out', false)
                 ->whereBetween('created_at', [$startDate, now()])
                 ->count(),
-            'completed_orders' => MaterialRequest::where('status', 'concluida')
+            'processed_orders' => MaterialRequest::where('has_stock_out', true)
                 ->whereBetween('created_at', [$startDate, now()])
                 ->count(),
             'total_amount' => MaterialRequest::whereBetween('created_at', [$startDate, now()])

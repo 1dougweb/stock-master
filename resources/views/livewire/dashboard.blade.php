@@ -36,7 +36,7 @@
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">Requisições</h3>
                     <p class="text-3xl font-bold text-green-600">{{ $monthlyStats['completed_orders'] }}</p>
-                    <p class="text-sm text-gray-500">Este mês</p>
+                    <p class="text-sm text-gray-500">Com saída de estoque</p>
                 </div>
             </div>
         </div>
@@ -144,7 +144,6 @@
                     <tr>
                         <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Número</th>
                         <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Data</th>
                         <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Total</th>
                     </tr>
@@ -153,16 +152,15 @@
                     @foreach($recentOrders as $order)
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                #{{ $order->id }}
+                                #{{ $order->number }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $order->client_name }}
+                                {{ $order->customer_name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    {{ $order->status === 'concluida' ? 'bg-green-100 text-green-800' :
-                                       ($order->status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800') }}">
-                                    {{ ucfirst($order->status) }}
+                                    {{ $order->has_stock_out ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    {{ $order->has_stock_out ? 'Processada' : 'Pendente' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -232,7 +230,7 @@
                 const orders = @json($chartData['orders'] ?? []);
                 const stockIn = @json($chartData['stockIn'] ?? []);
                 const stockOut = @json($chartData['stockOut'] ?? []);
-                const topProducts = @json($chartData['topProducts'] ?? []);
+                const topProducts = @json($topProducts->pluck('stock_movements_count', 'name')->toArray() ?? []);
                 
                 // Colors for the charts
                 const colors = {

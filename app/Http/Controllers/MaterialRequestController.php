@@ -35,7 +35,7 @@ class MaterialRequestController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'description' => 'required|string',
             'notes' => 'nullable|string',
-            'status' => 'required|string|in:pendente,em_andamento,concluida,cancelada',
+            'take_from_stock' => 'sometimes|boolean',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
@@ -51,8 +51,9 @@ class MaterialRequestController extends Controller
                 'customer_email' => $validated['customer_email'],
                 'description' => $validated['description'],
                 'notes' => $validated['notes'],
-                'status' => $validated['status'],
                 'user_id' => auth()->id(),
+                'has_stock_out' => false,
+                'has_stock_return' => false,
                 'total_amount' => collect($validated['items'])->sum(function ($item) {
                     return $item['price'] * $item['quantity'];
                 }),
@@ -60,10 +61,12 @@ class MaterialRequestController extends Controller
 
             foreach ($validated['items'] as $item) {
                 $product = Product::find($item['product_id']);
-                if ($product->stock < $item['quantity']) {
-                    throw ValidationException::withMessages([
-                        'error' => "Estoque insuficiente para o produto {$product->name}"
-                    ]);
+                if ($validated['take_from_stock'] ?? false) {
+                    if ($product->stock < $item['quantity']) {
+                        throw ValidationException::withMessages([
+                            'error' => "Estoque insuficiente para o produto {$product->name}"
+                        ]);
+                    }
                 }
 
                 $materialRequest->items()->create([
@@ -71,8 +74,11 @@ class MaterialRequestController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
+            }
 
-                $product->decrement('stock', $item['quantity']);
+            // Registrar movimento de estoque se solicitado
+            if ($validated['take_from_stock'] ?? false) {
+                $materialRequest->takeItemsFromStock();
             }
 
             DB::commit();
@@ -104,22 +110,52 @@ class MaterialRequestController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'description' => 'required|string',
             'notes' => 'nullable|string',
-            'status' => 'required|string|in:pendente,em_andamento,concluida,cancelada',
+            'take_from_stock' => 'sometimes|boolean',
+            'return_to_stock' => 'sometimes|boolean',
         ]);
 
-        $materialRequest->update($validated);
+        // Verificar ações contraditórias
+        if (($validated['take_from_stock'] ?? false) && ($validated['return_to_stock'] ?? false)) {
+            return back()->with('error', 'Não é possível realizar saída e devolução de estoque simultaneamente.');
+        }
 
-        return redirect()->route('material-requests.index')
-            ->with('success', 'Requisição de material atualizada com sucesso!');
+        DB::beginTransaction();
+        try {
+            // Atualizar a requisição
+            $materialRequest->update([
+                'customer_name' => $validated['customer_name'],
+                'customer_phone' => $validated['customer_phone'],
+                'customer_email' => $validated['customer_email'],
+                'description' => $validated['description'],
+                'notes' => $validated['notes'],
+            ]);
+
+            // Processar ações de estoque
+            if ($validated['take_from_stock'] ?? false) {
+                $materialRequest->takeItemsFromStock();
+            } else if ($validated['return_to_stock'] ?? false) {
+                $materialRequest->returnItemsToStock();
+            }
+
+            DB::commit();
+            return redirect()->route('material-requests.show', $materialRequest)
+                ->with('success', 'Requisição de material atualizada com sucesso!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function destroy(MaterialRequest $materialRequest)
     {
         DB::beginTransaction();
         try {
-            // Restaurar o estoque dos produtos
-            foreach ($materialRequest->items as $item) {
-                $item->product->increment('stock', $item->quantity);
+            // Restaurar o estoque dos produtos se já houve saída
+            if ($materialRequest->has_stock_out && !$materialRequest->has_stock_return) {
+                foreach ($materialRequest->items as $item) {
+                    $item->product->increment('stock', $item->quantity);
+                }
             }
 
             $materialRequest->delete();
@@ -145,8 +181,45 @@ class MaterialRequestController extends Controller
 
     public function complete(MaterialRequest $materialRequest)
     {
-        $materialRequest->update(['status' => 'concluida']);
-        
-        return back()->with('success', 'Requisição concluída com sucesso!');
+        DB::beginTransaction();
+        try {
+            // Verificar se já houve saída de estoque
+            if ($materialRequest->has_stock_out) {
+                return back()->with('error', 'Esta requisição já teve saída de estoque processada.');
+            }
+            
+            // Verificar se há estoque suficiente para todos os itens
+            foreach ($materialRequest->items as $item) {
+                if ($item->product->stock < $item->quantity) {
+                    throw ValidationException::withMessages([
+                        'error' => "Estoque insuficiente para o produto {$item->product->name}"
+                    ]);
+                }
+            }
+            
+            // Realizar a saída de estoque
+            $materialRequest->takeItemsFromStock();
+            
+            DB::commit();
+            return back()->with('success', 'Itens retirados do estoque com sucesso!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function processLivewireUpdate(MaterialRequest $materialRequest, $action)
+    {
+        try {
+            if ($action === 'take_from_stock') {
+                $materialRequest->takeItemsFromStock();
+            } elseif ($action === 'return_to_stock') {
+                $materialRequest->returnItemsToStock();
+            }
+            
+            return true;
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 }

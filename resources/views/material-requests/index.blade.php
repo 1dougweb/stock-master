@@ -39,7 +39,6 @@
                                 <tr>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                                     <th class="px-6 py-3 bg-gray-50"></th>
@@ -55,16 +54,6 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $request->customer_name }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                @if($request->status === 'pendente') bg-yellow-100 text-yellow-800
-                                                @elseif($request->status === 'em_andamento') bg-blue-100 text-blue-800
-                                                @elseif($request->status === 'concluida') bg-green-100 text-green-800
-                                                @else bg-red-100 text-red-800
-                                                @endif">
-                                                {{ __($request->status) }}
-                                            </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                                             R$ {{ number_format($request->total_amount, 2, ',', '.') }}

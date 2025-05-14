@@ -11,12 +11,12 @@ class MaterialRequestList extends Component
     use WithPagination;
 
     public $search = '';
-    public $status = '';
+    public $stockFilter = '';
     public $perPage = 10;
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'status' => ['except' => ''],
+        'stockFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
     ];
 
@@ -36,8 +36,14 @@ class MaterialRequestList extends Component
                         ->orWhere('customer_phone', 'like', '%' . $this->search . '%');
                 });
             })
-            ->when($this->status, function ($query) {
-                $query->where('status', $this->status);
+            ->when($this->stockFilter === 'processed', function ($query) {
+                $query->where('has_stock_out', true);
+            })
+            ->when($this->stockFilter === 'pending', function ($query) {
+                $query->where('has_stock_out', false);
+            })
+            ->when($this->stockFilter === 'returned', function ($query) {
+                $query->where('has_stock_return', true);
             })
             ->latest()
             ->paginate($this->perPage);

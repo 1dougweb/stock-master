@@ -39,28 +39,6 @@
         tr:nth-child(even) {
             background-color: #fafafa;
         }
-        .status {
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        .status-pending {
-            background-color: #fef9c3;
-            color: #854d0e;
-        }
-        .status-in-progress {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        .status-completed {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        .status-canceled {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
         .footer {
             text-align: center;
             font-size: 10px;
@@ -81,9 +59,6 @@
                 {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('d/m/Y') : 'Hoje' }}
             </p>
         @endif
-        @if(request('status'))
-            <p>Status: {{ ucfirst(request('status')) }}</p>
-        @endif
     </div>
 
     <table>
@@ -91,7 +66,6 @@
             <tr>
                 <th>Número</th>
                 <th>Cliente</th>
-                <th>Status</th>
                 <th>Produtos</th>
                 <th>Valor Total</th>
                 <th>Data</th>
@@ -102,22 +76,6 @@
                 <tr>
                     <td>{{ $order->number }}</td>
                     <td>{{ $order->customer_name }}</td>
-                    <td>
-                        @switch($order->status)
-                            @case('pending')
-                                <span class="status status-pending">Pendente</span>
-                                @break
-                            @case('in_progress')
-                                <span class="status status-in-progress">Em Andamento</span>
-                                @break
-                            @case('completed')
-                                <span class="status status-completed">Concluído</span>
-                                @break
-                            @case('canceled')
-                                <span class="status status-canceled">Cancelado</span>
-                                @break
-                        @endswitch
-                    </td>
                     <td>
                         <ul>
                             @foreach($order->items as $item)
@@ -130,7 +88,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center;">Nenhuma requisição de material encontrada.</td>
+                    <td colspan="5" style="text-align: center;">Nenhuma requisição de material encontrada.</td>
                 </tr>
             @endforelse
         </tbody>

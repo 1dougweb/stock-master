@@ -31,17 +31,6 @@
                                     <span class="ml-2 text-sm text-gray-900">{{ $materialRequest->number }}</span>
                                 </div>
                                 <div>
-                                    <span class="text-sm font-medium text-gray-500">{{ __('Status') }}:</span>
-                                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                        @if($materialRequest->status === 'pendente') bg-yellow-100 text-yellow-800
-                                        @elseif($materialRequest->status === 'em_andamento') bg-blue-100 text-blue-800
-                                        @elseif($materialRequest->status === 'concluida') bg-green-100 text-green-800
-                                        @else bg-red-100 text-red-800
-                                        @endif">
-                                        {{ __($materialRequest->status) }}
-                                    </span>
-                                </div>
-                                <div>
                                     <span class="text-sm font-medium text-gray-500">{{ __('Data de Criação') }}:</span>
                                     <span class="ml-2 text-sm text-gray-900">{{ $materialRequest->created_at->format('d/m/Y H:i') }}</span>
                                 </div>
@@ -134,4 +123,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Notificações -->
+    @if(session('success'))
+        <x-notification type="success" message="{{ session('success') }}"/>
+    @endif
+
+    @if(session('error'))
+        <x-notification type="error" message="{{ session('error') }}"/>
+    @endif
+
+    @if(session('info'))
+        <x-notification type="info" message="{{ session('info') }}"/>
+    @endif
 </x-app-layout>
