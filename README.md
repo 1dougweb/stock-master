@@ -2,6 +2,8 @@
 
 Sistema de gestão de estoque desenvolvido com Laravel, Livewire e TailwindCSS.
 
+![Dashboard do Sistema de Gestão de Estoque](public/images/dashboard.png)
+
 ## Funcionalidades
 
 - Gestão de Produtos
@@ -35,6 +37,8 @@ Sistema de gestão de estoque desenvolvido com Laravel, Livewire e TailwindCSS.
   - Gráficos e indicadores
 
 ## Instalação
+
+> **Nota:** Para visualizar corretamente a imagem do dashboard acima, salve a captura de tela fornecida como `public/images/dashboard.png` no projeto.
 
 1. Clone o repositório
 ```bash
